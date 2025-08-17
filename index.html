@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Crop Online - Final Version</title>
+    <title>Image Crop Online - Final Optimized Version</title>
     <!-- Cropper.js CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
     <style>
         /* Embedded Compact CSS */
         *, *::before, *::after {
-            box-sizing: border-box; /* Ensures padding and border are included in the element's total width and height */
+            box-sizing: border-box;
         }
 
         html, body {
-            overflow-x: hidden; /* This is the key fix to prevent the horizontal scrollbar */
+            overflow-x: hidden;
         }
 
         body {
@@ -58,43 +58,30 @@
         .toolbar-group input[type="number"] { width: 70px; padding: 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 14px; }
 
         /* --- Main Layout: Always Vertical --- */
-        .main-layout {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
+        .main-layout { display: flex; flex-direction: column; gap: 15px; }
         .image-workspace { flex-shrink: 0; }
         #image-container { 
-            width: 100%; 
-            height: 350px;
-            border: 2px dashed #ccc; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            color: #888; 
-            background-color: #fafafa;
-            overflow: hidden;
+            width: 100%; height: 350px; border: 2px dashed #ccc; display: flex; 
+            align-items: center; justify-content: center; color: #888; 
+            background-color: #fafafa; overflow: hidden;
         }
-        #image { 
-            display: none; 
-            max-width: 100%; 
-        }
+        #image { display: none; max-width: 100%; }
 
         .controls-panel { width: 100%; }
         .control-group { margin-bottom: 15px; }
         .control-group h3 { margin-top: 0; margin-bottom: 8px; font-size: 0.9rem; color: #333; border-bottom: 1px solid #eee; padding-bottom: 4px; }
         
-        button, .button-style { border-radius: 4px; cursor: pointer; font-size: 0.9rem; text-align: center; text-decoration: none; border: 1px solid #ccc; }
+        button, .button-style { border-radius: 4px; cursor: pointer; font-size: 0.9rem; text-align: center; text-decoration: none; border: 1px solid #ccc; transition: filter 0.2s; }
         button:hover, .button-style:hover { filter: brightness(95%); }
+        button:disabled, button:disabled:hover {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            cursor: not-allowed;
+            filter: none;
+        }
         
         /* --- Primary Actions Row --- */
-        .primary-actions { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); 
-            gap: 8px; 
-            margin-bottom: 15px; 
-        }
+        .primary-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 8px; margin-bottom: 15px; }
         .primary-actions .button-style, .primary-actions button { color: white; padding: 10px 5px; border: none; }
         #input-image-label { background-color: #28a745; }
         #crop-button { background-color: #007bff; }
@@ -104,17 +91,8 @@
         .file-upload-label { cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
         /* --- Icon Button Group Styles --- */
-        .icon-button-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-            gap: 8px;
-        }
-        .icon-button-group button {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px;
-        }
+        .icon-button-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(40px, 1fr)); gap: 8px; }
+        .icon-button-group button { display: flex; align-items: center; justify-content: center; padding: 8px; }
         .icon-button-group svg { width: 20px; height: 20px; fill: #333; }
         
         /* Grouped Background Colors */
@@ -147,30 +125,18 @@
                  <div class="primary-actions">
                     <label for="input-image" id="input-image-label" class="button-style file-upload-label">+ Image</label>
                     <button id="crop-button" class="button-style">Crop Image</button>
-                    <a id="download-link" href="#" class="button-style" download="cropped-image.png">Download</a>
+                    <a id="download-link" href="#" class="button-style" download="cropped-image.jpg">Download</a>
                 </div>
                 
                 <div class="control-group">
                     <h3>More Options</h3>
                     <div class="icon-button-group">
-                        <button id="rotate-left-btn" title="Rotate Left">
-                            <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.36 11.23 16.79 8 12.5 8z"/></svg>
-                        </button>
-                        <button id="rotate-right-btn" title="Rotate Right">
-                            <svg viewBox="0 0 24 24" style="transform: scaleX(-1);"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.36 11.23 16.79 8 12.5 8z"/></svg>
-                        </button>
-                        <button id="flip-horizontal-btn" title="Flip Horizontal">
-                            <svg viewBox="0 0 24 24"><path d="M4 12l4-4v3h8V8l4 4-4 4v-3H8v3l-4-4z"/></svg>
-                        </button>
-                        <button id="flip-vertical-btn" title="Flip Vertical">
-                            <svg viewBox="0 0 24 24"><path d="M12 20l-4-4h3v-8H8l4-4 4 4h-3v8h3l-4 4z"/></svg>
-                        </button>
-                        <button id="zoom-in-btn" title="Zoom In">
-                            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
-                        </button>
-                        <button id="zoom-out-btn" title="Zoom Out">
-                             <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
-                        </button>
+                        <button id="rotate-left-btn" title="Rotate Left"><svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.36 11.23 16.79 8 12.5 8z"/></svg></button>
+                        <button id="rotate-right-btn" title="Rotate Right"><svg viewBox="0 0 24 24" style="transform: scaleX(-1);"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.36 11.23 16.79 8 12.5 8z"/></svg></button>
+                        <button id="flip-horizontal-btn" title="Flip Horizontal"><svg viewBox="0 0 24 24"><path d="M4 12l4-4v3h8V8l4 4-4 4v-3H8v3l-4-4z"/></svg></button>
+                        <button id="flip-vertical-btn" title="Flip Vertical"><svg viewBox="0 0 24 24"><path d="M12 20l-4-4h3v-8H8l4-4 4 4h-3v8h3l-4 4z"/></svg></button>
+                        <button id="zoom-in-btn" title="Zoom In"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></button>
+                        <button id="zoom-out-btn" title="Zoom Out"><svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg></button>
                     </div>
                 </div>
                  <input type="file" id="input-image" accept="image/*">
@@ -201,15 +167,10 @@
                     const reader = new FileReader();
                     reader.onload = (event) => {
                         if (cropper) { cropper.destroy(); }
-                        
                         image.src = event.target.result;
                         image.style.display = 'block';
                         imageContainer.querySelector('span').style.display = 'none';
-
-                        cropper = new Cropper(image, {
-                            viewMode: 1,
-                            autoCropArea: 0.9,
-                            responsive: true,
+                        cropper = new Cropper(image, { viewMode: 1, autoCropArea: 0.9, responsive: true,
                             crop(event) {
                                 widthInput.value = Math.round(event.detail.width);
                                 heightInput.value = Math.round(event.detail.height);
@@ -222,35 +183,39 @@
 
             cropButton.addEventListener('click', () => {
                 if (!cropper) { alert('Please select an image first!'); return; }
-                const canvas = cropper.getCroppedCanvas();
-                if (canvas) {
-                    downloadLink.href = canvas.toDataURL('image/png');
-                    downloadLink.style.display = 'flex';
-                    downloadLink.style.alignItems = 'center';
-                    downloadLink.style.justifyContent = 'center';
-                }
+                
+                // --- UX and Performance Optimization STARTS ---
+                cropButton.disabled = true;
+                cropButton.textContent = 'Processing...';
+                downloadLink.style.display = 'none'; // Hide old link if it exists
+
+                // Use setTimeout to allow the UI to update before the heavy task
+                setTimeout(() => {
+                    const canvas = cropper.getCroppedCanvas();
+                    if (canvas) {
+                        // Use JPEG for faster processing
+                        downloadLink.href = canvas.toDataURL('image/jpeg', 0.9);
+                        downloadLink.style.display = 'flex';
+                        downloadLink.style.alignItems = 'center';
+                        downloadLink.style.justifyContent = 'center';
+                    }
+                    // Restore button state
+                    cropButton.disabled = false;
+                    cropButton.textContent = 'Crop Image';
+                }, 10); // A small delay is enough
+                // --- UX and Performance Optimization ENDS ---
             });
 
-            widthInput.addEventListener('input', (e) => {
-                if (cropper) { const data = cropper.getData(); cropper.setData({ ...data, width: Number(e.target.value) }); }
-            });
-
-            heightInput.addEventListener('input', (e) => {
-                if (cropper) { const data = cropper.getData(); cropper.setData({ ...data, height: Number(e.target.value) }); }
-            });
+            widthInput.addEventListener('input', (e) => { if (cropper) { const data = cropper.getData(); cropper.setData({ ...data, width: Number(e.target.value) }); } });
+            heightInput.addEventListener('input', (e) => { if (cropper) { const data = cropper.getData(); cropper.setData({ ...data, height: Number(e.target.value) }); } });
             
             document.getElementById('rotate-left-btn').addEventListener('click', () => cropper && cropper.rotate(-90));
             document.getElementById('rotate-right-btn').addEventListener('click', () => cropper && cropper.rotate(90));
             document.getElementById('zoom-in-btn').addEventListener('click', () => cropper && cropper.zoom(0.1));
             document.getElementById('zoom-out-btn').addEventListener('click', () => cropper && cropper.zoom(-0.1));
             
-            document.getElementById('flip-horizontal-btn').addEventListener('click', () => {
-                if (cropper) { flipScaleX = -flipScaleX; cropper.scaleX(flipScaleX); }
-            });
-
-            document.getElementById('flip-vertical-btn').addEventListener('click', () => {
-                if (cropper) { flipScaleY = -flipScaleY; cropper.scaleY(flipScaleY); }
-            });
+            document.getElementById('flip-horizontal-btn').addEventListener('click', () => { if (cropper) { flipScaleX = -flipScaleX; cropper.scaleX(flipScaleX); } });
+            document.getElementById('flip-vertical-btn').addEventListener('click', () => { if (cropper) { flipScaleY = -flipScaleY; cropper.scaleY(flipScaleY); } });
         });
     </script>
 </body>
