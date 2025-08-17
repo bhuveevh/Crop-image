@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Crop Online - Final Version</title>
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <style>
+        /* Embedded Compact CSS */
+        body {
+            font-family: sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 10px; /* Reduced padding for small screens */
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent; /* Removes tap highlight on mobile */
+        }
+
+        .container {
+            background: #ffffff;
+            padding: 15px;
+            border: 1px solid #ccc;
+            width: 100%;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        /* --- Top Toolbar Styles --- */
+        .top-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap; /* Allows wrapping on very small screens */
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .toolbar-group { display: flex; align-items: center; gap: 8px; }
+        .toolbar-group svg { width: 20px; height: 20px; fill: #555; }
+        .toolbar-group input[type="number"] { width: 70px; padding: 6px; border: 1px solid #ccc; border-radius: 3px; font-size: 14px; }
+
+        /* --- Main Layout: Always Vertical --- */
+        .main-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .image-workspace { flex-shrink: 0; }
+        #image-container { 
+            width: 100%; 
+            height: 350px; /* Adjusted height */
+            border: 2px dashed #ccc; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: #888; 
+            background-color: #fafafa;
+            overflow: hidden;
+        }
+        #image { 
+            display: none; 
+            max-width: 100%; 
+        }
+
+        .controls-panel { width: 100%; }
+        .control-group { margin-bottom: 15px; }
+        .control-group h3 { margin-top: 0; margin-bottom: 8px; font-size: 0.9rem; color: #333; border-bottom: 1px solid #eee; padding-bottom: 4px; }
+        
+        button, .button-style { border-radius: 4px; cursor: pointer; font-size: 0.9rem; text-align: center; text-decoration: none; border: 1px solid #ccc; }
+        button:hover, .button-style:hover { filter: brightness(95%); }
+        
+        /* --- Primary Actions Row --- */
+        .primary-actions { 
+            display: grid; 
+            /* Responsive grid for main buttons */
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); 
+            gap: 8px; 
+            margin-bottom: 15px; 
+        }
+        .primary-actions .button-style, .primary-actions button { color: white; padding: 10px 5px; border: none; }
+        #input-image-label { background-color: #28a745; }
+        #crop-button { background-color: #007bff; }
+        #download-link { display: none; background-color: #17a2b8; }
+        
+        input[type="file"] { display: none; }
+        .file-upload-label { cursor: pointer; display: flex; align-items: center; justify-content: center; }
+
+        /* --- Icon Button Group Styles --- */
+        .icon-button-group {
+            display: grid;
+            /* Responsive grid for icons, wraps automatically */
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            gap: 8px;
+        }
+        .icon-button-group button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+        .icon-button-group svg { width: 20px; height: 20px; fill: #333; }
+        
+        /* Grouped Background Colors */
+        #rotate-left-btn, #rotate-right-btn { background-color: #e9ecef; }
+        #flip-horizontal-btn, #flip-vertical-btn { background-color: #f8f9fa; }
+        #zoom-in-btn, #zoom-out-btn { background-color: #e2e6ea; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Image Crop Online</h1>
+        
+        <div class="main-layout">
+            <div class="image-workspace">
+                 <div class="top-toolbar">
+                    <div class="toolbar-group">
+                        <svg viewBox="0 0 24 24"><path d="M3 17.25V6.75A2.75 2.75 0 0 1 5.75 4h12.5A2.75 2.75 0 0 1 21 6.75v10.5A2.75 2.75 0 0 1 18.25 20H5.75A2.75 2.75 0 0 1 3 17.25zM5.75 5.5a1.25 1.25 0 0 0-1.25 1.25v10.5a1.25 1.25 0 0 0 1.25 1.25h12.5a1.25 1.25 0 0 0 1.25-1.25V6.75a1.25 1.25 0 0 0-1.25-1.25H5.75z"/></svg>
+                        <input type="number" id="width-input" placeholder="width">
+                        <span>×</span>
+                        <input type="number" id="height-input" placeholder="height">
+                    </div>
+                </div>
+                <div id="image-container">
+                    <span>Select an image to start</span>
+                    <img id="image">
+                </div>
+            </div>
+            
+            <div class="controls-panel">
+                 <div class="primary-actions">
+                    <label for="input-image" id="input-image-label" class="button-style file-upload-label">+ Image</label>
+                    <button id="crop-button" class="button-style">Crop Image</button>
+                    <a id="download-link" href="#" class="button-style" download="cropped-image.png">Download</a>
+                </div>
+                
+                <div class="control-group">
+                    <h3>More Options</h3>
+                    <div class="icon-button-group">
+                        <button id="rotate-left-btn" title="Rotate Left">
+                            <svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.36 11.23 16.79 8 12.5 8z"/></svg>
+                        </button>
+                        <button id="rotate-right-btn" title="Rotate Right">
+                            <svg viewBox="0 0 24 24" style="transform: scaleX(-1);"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.36 11.23 16.79 8 12.5 8z"/></svg>
+                        </button>
+                        <button id="flip-horizontal-btn" title="Flip Horizontal">
+                            <svg viewBox="0 0 24 24"><path d="M4 12l4-4v3h8V8l4 4-4 4v-3H8v3l-4-4z"/></svg>
+                        </button>
+                        <button id="flip-vertical-btn" title="Flip Vertical">
+                            <svg viewBox="0 0 24 24"><path d="M12 20l-4-4h3v-8H8l4-4 4 4h-3v8h3l-4 4z"/></svg>
+                        </button>
+                        <button id="zoom-in-btn" title="Zoom In">
+                            <svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        </button>
+                        <button id="zoom-out-btn" title="Zoom Out">
+                             <svg viewBox="0 0 24 24"><path d="M19 13H5v-2h14v2z"/></svg>
+                        </button>
+                    </div>
+                </div>
+                 <!-- File input is still here, but hidden -->
+                 <input type="file" id="input-image" accept="image/*">
+            </div>
+        </div>
+    </div>
+
+    <!-- Cropper.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script>
+        // Embedded JavaScript
+        document.addEventListener('DOMContentLoaded', () => {
+            const image = document.getElementById('image');
+            const imageContainer = document.getElementById('image-container');
+            const inputImage = document.getElementById('input-image');
+            const cropButton = document.getElementById('crop-button');
+            const downloadLink = document.getElementById('download-link');
+            const widthInput = document.getElementById('width-input');
+            const heightInput = document.getElementById('height-input');
+            
+            let cropper;
+            let flipScaleX = 1;
+            let flipScaleY = 1;
+
+            inputImage.addEventListener('change', (e) => {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        if (cropper) { cropper.destroy(); }
+                        
+                        image.src = event.target.result;
+                        image.style.display = 'block';
+                        imageContainer.querySelector('span').style.display = 'none';
+
+                        cropper = new Cropper(image, {
+                            viewMode: 1,
+                            autoCropArea: 0.9,
+                            responsive: true,
+                            crop(event) {
+                                widthInput.value = Math.round(event.detail.width);
+                                heightInput.value = Math.round(event.detail.height);
+                            },
+                        });
+                    };
+                    reader.readAsDataURL(files[0]);
+                }
+            });
+
+            cropButton.addEventListener('click', () => {
+                if (!cropper) { alert('Please select an image first!'); return; }
+                const canvas = cropper.getCroppedCanvas();
+                if (canvas) {
+                    downloadLink.href = canvas.toDataURL('image/png');
+                    downloadLink.style.display = 'flex';
+                    downloadLink.style.alignItems = 'center';
+                    downloadLink.style.justifyContent = 'center';
+                }
+            });
+
+            widthInput.addEventListener('input', (e) => {
+                if (cropper) { const data = cropper.getData(); cropper.setData({ ...data, width: Number(e.target.value) }); }
+            });
+
+            heightInput.addEventListener('input', (e) => {
+                if (cropper) { const data = cropper.getData(); cropper.setData({ ...data, height: Number(e.target.value) }); }
+            });
+            
+            document.getElementById('rotate-left-btn').addEventListener('click', () => cropper && cropper.rotate(-90));
+            document.getElementById('rotate-right-btn').addEventListener('click', () => cropper && cropper.rotate(90));
+            document.getElementById('zoom-in-btn').addEventListener('click', () => cropper && cropper.zoom(0.1));
+            document.getElementById('zoom-out-btn').addEventListener('click', () => cropper && cropper.zoom(-0.1));
+            
+            document.getElementById('flip-horizontal-btn').addEventListener('click', () => {
+                if (cropper) { flipScaleX = -flipScaleX; cropper.scaleX(flipScaleX); }
+            });
+
+            document.getElementById('flip-vertical-btn').addEventListener('click', () => {
+                if (cropper) { flipScaleY = -flipScaleY; cropper.scaleY(flipScaleY); }
+            });
+        });
+    </script>
+</body>
+</html>
